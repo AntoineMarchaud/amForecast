@@ -6,6 +6,7 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
@@ -59,6 +60,9 @@ class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.app
             field = value
             updateWeatherInfo()
         }
+
+    @Bindable
+    var loadingVisibility: Int = View.GONE; // one way binded
 
     @Bindable
     var town: String = "" // Two way binded
@@ -228,13 +232,13 @@ class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.app
 
     // manage weather info
     private fun onRetrieveTanArretListStart() {
-        //loadingVisibility = View.VISIBLE
-        //notifyPropertyChanged(BR.loadingVisibility)
+        loadingVisibility = View.VISIBLE
+        notifyPropertyChanged(BR.loadingVisibility)
     }
 
     private fun onRetrieveTanArretListFinish() {
-        //loadingVisibility = View.GONE
-        //notifyPropertyChanged(BR.loadingVisibility)
+        loadingVisibility = View.GONE
+        notifyPropertyChanged(BR.loadingVisibility)
     }
 
     private fun onWeatherSuccess(result: Fusion) {
