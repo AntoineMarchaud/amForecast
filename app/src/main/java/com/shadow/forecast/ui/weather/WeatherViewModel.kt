@@ -4,21 +4,17 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
+import android.location.*
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.multi.DialogOnAnyDeniedMultiplePermissionsListener
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import com.shadow.forecast.BR
 import com.shadow.forecast.R
@@ -109,7 +105,7 @@ class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.app
                         )
                     }
 
-                    if (report.isAnyPermissionPermanentlyDenied()) {
+                    if (report.isAnyPermissionPermanentlyDenied) {
                         showSettingsDialog();
                     }
                 }
@@ -155,46 +151,12 @@ class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.app
         myPersonnalLat = location?.latitude
         myPersonnalLong = location?.longitude
 
-        // launch webWs for my position
-        if (myPersonnalLat != null && myPersonnalLong != null) {
-            subscription = myWeatherApi.getWeatherResultByPositionWithRxJava(
-                myPersonnalLat!!,
-                myPersonnalLong!!,
-                keyMap
-            )
-                .concatMap { current: Current ->
+        val geocoder = Geocoder(myActivity, Locale.getDefault())
+        val addresses: List<Address> = geocoder.getFromLocation(myPersonnalLat ?: 0.0, myPersonnalLong ?: 0.0, 1)
+        town = addresses[0].featureName
+        notifyPropertyChanged(BR.town)
 
-                    Observable.zip(
-                        Observable.just(current),
-                        myWeatherApi.getOneCallWeatherResultByLatLongWithRxJava(
-                            myPersonnalLat!!,
-                            myPersonnalLong!!,
-                            "minutely,hourly,alerts",
-                            keyMap
-                        ),
-                        object : Function2<Current, OneCall, Fusion> {
-                            override fun invoke(p1: Current, p2: OneCall): Fusion {
-                                return Fusion(p1, p2)
-                            }
-                        })
-                }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe { onRetrieveTanArretListStart() }
-                .doOnTerminate { onRetrieveTanArretListFinish() }
-                .subscribe(
-                    { fusion: Fusion ->
-
-                        // change my town
-                        town = fusion.Current?.name
-                            ?: "" // the name of the town is only in the first WS (Current)
-                        notifyPropertyChanged(BR.town)
-
-                        onWeatherSuccess(fusion)
-                    },
-                    { onError -> println(onError) }
-                )
-        }
+        updateWeatherCity()
     }
 
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
@@ -211,21 +173,21 @@ class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.app
 
     override fun onKeyboardGo() {
         myActivity.hideKeyboard()
-        searchCity()
+        updateWeatherCity()
     }
 
     override fun onKeyboardSearch() {
         myActivity.hideKeyboard()
-        searchCity()
+        updateWeatherCity()
     }
 
     override fun onKeyboardDone() {
         myActivity.hideKeyboard()
-        searchCity()
+        updateWeatherCity()
     }
 
 
-    private fun searchCity() {
+    private fun updateWeatherCity() {
         town.let {
 
             subscription = myWeatherApi.getWeatherResultByTownWithRxJava(town, keyMap)
