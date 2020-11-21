@@ -5,9 +5,9 @@ import android.widget.TextView
 import androidx.databinding.BindingAdapter
 
 interface OnTextViewKeyboardListener {
-    fun onKeyboardGo()
-    fun onKeyboardSearch()
-    fun onKeyboardDone()
+    fun onKeyboardGo(v:TextView)
+    fun onKeyboardSearch(v:TextView)
+    fun onKeyboardDone(v:TextView)
 }
 
 object TextViewKeyboardBindingAdapter {
@@ -20,15 +20,15 @@ object TextViewKeyboardBindingAdapter {
             view.setOnEditorActionListener { v, actionId, event ->
                 when (actionId) {
                     EditorInfo.IME_ACTION_SEARCH -> {
-                        listener.onKeyboardSearch()
+                        listener.onKeyboardSearch(view)
                         true
                     }
                     EditorInfo.IME_ACTION_GO -> {
-                        listener.onKeyboardGo()
+                        listener.onKeyboardGo(view)
                         true
                     }
                     EditorInfo.IME_ACTION_DONE -> {
-                        listener.onKeyboardDone()
+                        listener.onKeyboardDone(view)
                         true
                     }
                     else -> false

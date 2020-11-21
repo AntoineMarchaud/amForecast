@@ -2,6 +2,7 @@ package com.shadow.forecast.ui.weather
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.location.*
@@ -9,6 +10,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
@@ -36,16 +38,17 @@ import java.util.*
 import javax.inject.Inject
 
 
-class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.application),
+class WeatherViewModel(context: Context) : BaseViewModel(context.applicationContext as Application),
     LocationListener, OnTextViewKeyboardListener {
 
     @Inject
     lateinit var myWeatherApi: WeatherApi // Dagger2 !
 
-    var myActivity = activity
+    @Inject
+    lateinit var myApplication: Application // Dagger2 !
 
     val keyMap: String by lazy {
-        activity.resources.getString(R.string.key_map)
+        myApplication.resources.getString(R.string.key_map)
     }
 
     // RxAndroid
@@ -82,7 +85,7 @@ class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.app
         myPersonnalLat = location?.latitude
         myPersonnalLong = location?.longitude
 
-        val geocoder = Geocoder(myActivity, Locale.getDefault())
+        val geocoder = Geocoder(myApplication, Locale.getDefault())
         val addresses: List<Address> = geocoder.getFromLocation(myPersonnalLat ?: 0.0, myPersonnalLong ?: 0.0, 1)
         town = addresses[0].featureName
         notifyPropertyChanged(BR.town)
@@ -102,18 +105,18 @@ class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.app
         TODO("Not yet implemented")
     }
 
-    override fun onKeyboardGo() {
-        myActivity.hideKeyboard()
+    override fun onKeyboardGo(v: TextView) {
+        myApplication.hideKeyboard(v)
         updateWeatherCity()
     }
 
-    override fun onKeyboardSearch() {
-        myActivity.hideKeyboard()
+    override fun onKeyboardSearch(v:TextView) {
+        myApplication.hideKeyboard(v)
         updateWeatherCity()
     }
 
-    override fun onKeyboardDone() {
-        myActivity.hideKeyboard()
+    override fun onKeyboardDone(v:TextView) {
+        myApplication.hideKeyboard(v)
         updateWeatherCity()
     }
 
