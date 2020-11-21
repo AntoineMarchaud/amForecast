@@ -52,7 +52,6 @@ class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.app
     private lateinit var subscription: Disposable
 
     // information about my position (bonus)
-    private var locationManager: LocationManager? = null
     private var myPersonnalLat: Double? = 0.0
     private var myPersonnalLong: Double? = 0.0
 
@@ -74,74 +73,6 @@ class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.app
     val nextInfo: MutableLiveData<List<WeatherDisplayed>> = MutableLiveData()
     val myPosition: MutableLiveData<GeoPoint> = MutableLiveData()
     val errorMessage: MutableLiveData<String?> = MutableLiveData()
-
-    init {
-        locationManager = activity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        checkPermissions()
-    }
-
-    /**
-     * Ask permission to user (for Map)
-     */
-    private fun checkPermissions() {
-        Dexter
-            .withActivity(myActivity)
-            .withPermissions(
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-            .withListener(object : MultiplePermissionsListener {
-                @SuppressLint("MissingPermission")
-                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
-
-                    if (report.areAllPermissionsGranted()) {
-                        // launch locationManager
-                        locationManager?.requestLocationUpdates(
-                            LocationManager.GPS_PROVIDER,
-                            1000,// in milliseconds
-                            10f, // in meters
-                            this@WeatherViewModel
-                        )
-                    }
-
-                    if (report.isAnyPermissionPermanentlyDenied) {
-                        showSettingsDialog();
-                    }
-                }
-
-                override fun onPermissionRationaleShouldBeShown(
-                    permissions: MutableList<com.karumi.dexter.listener.PermissionRequest>?,
-                    token: PermissionToken?
-                ) {
-                    token?.continuePermissionRequest();
-                }
-            }).check()
-    }
-
-    /**
-     * Showing Alert Dialog with Settings option
-     * Navigates user to app settings
-     */
-    private fun showSettingsDialog() {
-        val builder: AlertDialog.Builder = AlertDialog.Builder(myActivity)
-        builder.setTitle(R.string.permissionGpsTitle)
-        builder.setMessage(R.string.permissionGpsMessage)
-        builder.setPositiveButton(R.string.permissionGpsOk) { dialog, which ->
-            dialog.cancel()
-            openSettings()
-        }
-        builder.setNegativeButton(R.string.permissionGpsCancel) { dialog, which -> dialog.cancel() }
-        builder.show()
-    }
-
-    // navigating user to app settings
-    private fun openSettings() {
-        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-        val uri: Uri = Uri.fromParts("package", myActivity.packageName, null)
-        intent.data = uri
-        myActivity.startActivityForResult(intent, 101)
-    }
 
     /**
      * Once my position is found, call getWeatherResultByPositionWithRxJava
