@@ -34,5 +34,6 @@ class NextDaysRecyclerViewAdapter(private val elements: List<WeatherDisplayed>) 
 
     override fun getItemCount(): Int = elements.size
 
-    inner class WeatherViewHolder(val binding: ItemWeatherBinding) : RecyclerView.ViewHolder(binding.root)
+    inner class WeatherViewHolder(val binding: ItemWeatherBinding) :
+        RecyclerView.ViewHolder(binding.root)
 }

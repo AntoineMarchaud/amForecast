@@ -47,7 +47,8 @@ class WeatherActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
 
         // force the recycler view to be in line mode
-        nextDayRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        nextDayRecyclerView.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
         // other
         townEntered.setImeActionLabel("Weather !", KeyEvent.KEYCODE_ENTER)
