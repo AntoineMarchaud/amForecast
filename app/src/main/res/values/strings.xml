@@ -11,4 +11,8 @@
     <string name="key_map">f3850d105a9db98b0f3b3f59e3995014</string>
     <string name="currentWeatherInfo">Current Weather :</string>
     <string name="futureWeatherInfo">Information for the week :</string>
+    <string name="permissionGpsTitle">Permission needed</string>
+    <string name="permissionGpsMessage">We need GPS for auto-detection</string>
+    <string name="permissionGpsOk">Go to settings</string>
+    <string name="permissionGpsCancel">Cancel</string>
 </resources>

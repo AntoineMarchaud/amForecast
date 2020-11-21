@@ -1,18 +1,24 @@
 package com.shadow.forecast.ui.weather
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.multi.DialogOnAnyDeniedMultiplePermissionsListener
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import com.shadow.forecast.BR
 import com.shadow.forecast.R
@@ -82,7 +88,8 @@ class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.app
      * Ask permission to user (for Map)
      */
     private fun checkPermissions() {
-        Dexter.withActivity(myActivity)
+        Dexter
+            .withActivity(myActivity)
             .withPermissions(
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 android.Manifest.permission.ACCESS_FINE_LOCATION,
@@ -91,15 +98,19 @@ class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.app
             .withListener(object : MultiplePermissionsListener {
                 @SuppressLint("MissingPermission")
                 override fun onPermissionsChecked(report: MultiplePermissionsReport) {
-                    if (report.areAllPermissionsGranted()) {
 
+                    if (report.areAllPermissionsGranted()) {
                         // launch locationManager
                         locationManager?.requestLocationUpdates(
                             LocationManager.GPS_PROVIDER,
-                            1000,
-                            10f,
+                            1000,// in milliseconds
+                            10f, // in meters
                             this@WeatherViewModel
                         )
+                    }
+
+                    if (report.isAnyPermissionPermanentlyDenied()) {
+                        showSettingsDialog();
                     }
                 }
 
@@ -107,9 +118,33 @@ class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.app
                     permissions: MutableList<com.karumi.dexter.listener.PermissionRequest>?,
                     token: PermissionToken?
                 ) {
-                    TODO("Not yet implemented")
+                    token?.continuePermissionRequest();
                 }
             }).check()
+    }
+
+    /**
+     * Showing Alert Dialog with Settings option
+     * Navigates user to app settings
+     */
+    private fun showSettingsDialog() {
+        val builder: AlertDialog.Builder = AlertDialog.Builder(myActivity)
+        builder.setTitle(R.string.permissionGpsTitle)
+        builder.setMessage(R.string.permissionGpsMessage)
+        builder.setPositiveButton(R.string.permissionGpsOk) { dialog, which ->
+            dialog.cancel()
+            openSettings()
+        }
+        builder.setNegativeButton(R.string.permissionGpsCancel) { dialog, which -> dialog.cancel() }
+        builder.show()
+    }
+
+    // navigating user to app settings
+    private fun openSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri: Uri = Uri.fromParts("package", myActivity.packageName, null)
+        intent.data = uri
+        myActivity.startActivityForResult(intent, 101)
     }
 
     /**
@@ -270,13 +305,13 @@ class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.app
                 "${it.main?.temp ?: 0} °",
                 "${it.wind?.speed ?: 0} km/h",
                 "${it.weather?.get(0)?.main} /  ${
-                    it.weather?.get(0)?.description}"
+                    it.weather?.get(0)?.description
+                }"
             )
         }
 
 
-
-        val m : MutableList<WeatherDisplayed> = mutableListOf()
+        val m: MutableList<WeatherDisplayed> = mutableListOf()
         // display all next days
         savedFusion?.OneCall?.daily?.forEach {
             // create list
@@ -286,7 +321,8 @@ class WeatherViewModel(activity: AppCompatActivity) : BaseViewModel(activity.app
                 "${it.temp?.day ?: 0} °",
                 "${it.wind_speed} km/h",
                 "${it.weather?.get(0)?.main} /  ${
-                    it.weather?.get(0)?.description}"
+                    it.weather?.get(0)?.description
+                }"
             )
             m.add(oneDay)
         }
