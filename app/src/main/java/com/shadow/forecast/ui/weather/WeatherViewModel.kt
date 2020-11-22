@@ -248,7 +248,7 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
 
     private fun updateWeatherInfo() {
 
-        val dateFormat = SimpleDateFormat("EEE yyyy HH:mm", Locale("fr", "Fr"))
+        val dateFormat = SimpleDateFormat("EEE dd/MM HH:mm", Locale("fr", "Fr"))
 
         // display current info from OneCall
         val current = savedFusion?.Current
@@ -257,8 +257,8 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
             currentInfo.value = WeatherDisplayed(
                 it.weather?.get(0)?.icon,
                 dateFormat.format(it.dt.times(1000L)),
-                "${it.main?.temp ?: 0} °",
-                "${it.wind?.speed ?: 0} km/h",
+                "${it.main?.temp?.toInt() ?: 0} °C",
+                "${it.wind?.speed?.times(3.6f)?.toInt() ?: 0} km/h",
                 "${it.weather?.get(0)?.main} /  ${
                     it.weather?.get(0)?.description
                 }"
@@ -273,8 +273,8 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
             val oneDay = WeatherDisplayed(
                 it.weather?.get(0)?.icon,
                 dateFormat.format(it.dt.times(1000L)),
-                "${it.temp?.day ?: 0} °",
-                "${it.wind_speed} km/h",
+                "${it.temp?.day?.toInt() ?: 0} °C",
+                "${it.wind_speed.times(3.6f).toInt()} km/h",
                 "${it.weather?.get(0)?.main} /  ${
                     it.weather?.get(0)?.description
                 }"
