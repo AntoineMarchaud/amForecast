@@ -1,22 +1,13 @@
 package com.shadow.forecast.ui.weather
 
-import android.annotation.SuppressLint
-import android.app.AlertDialog
-import android.content.Intent
-import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.MultiplePermissionsReport
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import com.shadow.forecast.BuildConfig
 import com.shadow.forecast.R
 import com.shadow.forecast.adapter.NextDaysRecyclerViewAdapter
