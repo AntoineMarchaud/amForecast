@@ -7,14 +7,12 @@ import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.location.*
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import android.widget.TextView
-import androidx.core.app.ActivityCompat
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
 import com.karumi.dexter.Dexter
@@ -186,6 +184,8 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
             subscription = myWeatherApi.getWeatherResultByTownWithRxJava(town, keyMap)
                 .concatMap { result: Current ->
 
+                    // zip results current / OneCall to one struct
+                    
                     if (result.coord?.lat ?: 0 != 0 && result.coord?.lon ?: 0 != 0)
                         Observable.zip(
                             Observable.just(result),
@@ -210,8 +210,8 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
                 }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe { onRetrieveTanArretListStart() }
-                .doOnTerminate { onRetrieveTanArretListFinish() }
+                .doOnSubscribe { onRetrieveForecastStart() }
+                .doOnTerminate { onRetrieveForecastFinish() }
                 .subscribe(
                     { fusion: Fusion -> onWeatherSuccess(fusion) },
                     { onError -> onWeatherError(onError) }
@@ -221,12 +221,12 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
 
 
     // manage weather info
-    private fun onRetrieveTanArretListStart() {
+    private fun onRetrieveForecastStart() {
         loadingVisibility = View.VISIBLE
         notifyPropertyChanged(BR.loadingVisibility)
     }
 
-    private fun onRetrieveTanArretListFinish() {
+    private fun onRetrieveForecastFinish() {
         loadingVisibility = View.GONE
         notifyPropertyChanged(BR.loadingVisibility)
     }
