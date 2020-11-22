@@ -185,7 +185,7 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
                 .concatMap { result: Current ->
 
                     // zip results current / OneCall to one struct
-                    
+
                     if (result.coord?.lat ?: 0 != 0 && result.coord?.lon ?: 0 != 0)
                         Observable.zip(
                             Observable.just(result),
