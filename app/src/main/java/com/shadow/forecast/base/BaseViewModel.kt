@@ -71,7 +71,6 @@ abstract class BaseViewModel(application: Application) : ViewModel(), Observable
     private fun requestInjection() {
         when (this) {
             is WeatherViewModel -> {
-                //tanApi = component.provideTanApi()
                 component.inject(this)
             }
         }
