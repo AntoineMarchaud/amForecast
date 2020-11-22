@@ -1,13 +1,9 @@
 package com.shadow.forecast.ui.weather
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
-import android.content.Context
-import android.content.Intent
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -35,8 +31,6 @@ class WeatherActivity : AppCompatActivity() {
 
     private lateinit var viewModel: WeatherViewModel
     private lateinit var binding: ActivityWeatherBinding
-
-    private var locationManager: LocationManager? = null
 
     // recycler view
     private lateinit var nextDaysRecyclerViewAdapter: NextDaysRecyclerViewAdapter
@@ -110,72 +104,6 @@ class WeatherActivity : AppCompatActivity() {
         viewModel.errorMessage.observe(this, { error ->
             Toast.makeText(this@WeatherActivity, error, Toast.LENGTH_SHORT).show()
         })
-
-        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        checkPermissions()
-    }
-
-    /**
-     * Ask permission to user (for Map)
-     */
-    private fun checkPermissions() {
-        Dexter
-            .withActivity(this)
-            .withPermissions(
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-            .withListener(object : MultiplePermissionsListener {
-                @SuppressLint("MissingPermission")
-                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
-
-                    if (report.areAllPermissionsGranted()) {
-                        // launch locationManager
-                        locationManager?.requestLocationUpdates(
-                            LocationManager.GPS_PROVIDER,
-                            1000,// in milliseconds
-                            10f, // in meters
-                            viewModel
-                        )
-                    }
-
-                    if (report.isAnyPermissionPermanentlyDenied) {
-                        showSettingsDialog();
-                    }
-                }
-
-                override fun onPermissionRationaleShouldBeShown(
-                    permissions: MutableList<com.karumi.dexter.listener.PermissionRequest>?,
-                    token: PermissionToken?
-                ) {
-                    token?.continuePermissionRequest();
-                }
-            }).check()
-    }
-
-    /**
-     * Showing Alert Dialog with Settings option
-     * Navigates user to app settings
-     */
-    private fun showSettingsDialog() {
-        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
-        builder.setTitle(R.string.permissionGpsTitle)
-        builder.setMessage(R.string.permissionGpsMessage)
-        builder.setPositiveButton(R.string.permissionGpsOk) { dialog, which ->
-            dialog.cancel()
-            openSettings()
-        }
-        builder.setNegativeButton(R.string.permissionGpsCancel) { dialog, which -> dialog.cancel() }
-        builder.show()
-    }
-
-    // navigating user to app settings
-    private fun openSettings() {
-        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-        val uri: Uri = Uri.fromParts("package", packageName, null)
-        intent.data = uri
-        startActivityForResult(intent, 101)
     }
 
     public override fun onResume() {

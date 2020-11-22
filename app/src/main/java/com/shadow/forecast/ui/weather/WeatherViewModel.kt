@@ -1,17 +1,20 @@
 package com.shadow.forecast.ui.weather
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.location.*
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
 import com.karumi.dexter.Dexter
@@ -47,9 +50,10 @@ class WeatherViewModel(context: Context) : BaseViewModel(context.applicationCont
     @Inject
     lateinit var myApplication: Application // Dagger2 !
 
-    val keyMap: String by lazy {
-        myApplication.resources.getString(R.string.key_map)
-    }
+    private val keyMap: String = myApplication.resources.getString(R.string.key_map)
+
+    // for autogeoloc
+    private var locationManager: LocationManager? = null
 
     // RxAndroid
     private lateinit var subscription: Disposable
@@ -78,6 +82,54 @@ class WeatherViewModel(context: Context) : BaseViewModel(context.applicationCont
     val errorMessage: MutableLiveData<String?> = MutableLiveData()
 
     /**
+     * Ask permission to user, and start autolocalizer if it is possible
+     */
+    fun onAutoLocalize(v: View) {
+        Dexter
+            .withActivity(v.context as Activity)
+            .withPermissions(
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+            .withListener(object : MultiplePermissionsListener {
+                @SuppressLint("MissingPermission")
+                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
+
+                    if (report.areAllPermissionsGranted()) {
+                        locationManager =
+                            myApplication.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                        locationManager?.requestLocationUpdates(
+                            LocationManager.GPS_PROVIDER,
+                            1000,// in milliseconds
+                            10f, // in meters
+                            this@WeatherViewModel
+                        )
+                    }
+
+                    if (report.isAnyPermissionPermanentlyDenied) {
+                        showSettingsDialog();
+                    }
+                }
+
+                override fun onPermissionRationaleShouldBeShown(
+                    permissions: MutableList<com.karumi.dexter.listener.PermissionRequest>?,
+                    token: PermissionToken?
+                ) {
+                    token?.continuePermissionRequest();
+                }
+            }).check()
+    }
+
+    /**
+     * Stop auto localizer
+     */
+    private fun onStopGpsLocalize() {
+        locationManager?.removeUpdates(this)
+        locationManager = null;
+    }
+
+    /**
      * Once my position is found, call getWeatherResultByPositionWithRxJava
      */
     override fun onLocationChanged(location: Location?) {
@@ -85,8 +137,14 @@ class WeatherViewModel(context: Context) : BaseViewModel(context.applicationCont
         myPersonnalLat = location?.latitude
         myPersonnalLong = location?.longitude
 
+        onStopGpsLocalize() // no need anymore
+
         val geocoder = Geocoder(myApplication, Locale.getDefault())
-        val addresses: List<Address> = geocoder.getFromLocation(myPersonnalLat ?: 0.0, myPersonnalLong ?: 0.0, 1)
+        val addresses: List<Address> = geocoder.getFromLocation(
+            myPersonnalLat ?: 0.0,
+            myPersonnalLong ?: 0.0,
+            1
+        )
         town = addresses[0].featureName
         notifyPropertyChanged(BR.town)
 
@@ -110,12 +168,12 @@ class WeatherViewModel(context: Context) : BaseViewModel(context.applicationCont
         updateWeatherCity()
     }
 
-    override fun onKeyboardSearch(v:TextView) {
+    override fun onKeyboardSearch(v: TextView) {
         myApplication.hideKeyboard(v)
         updateWeatherCity()
     }
 
-    override fun onKeyboardDone(v:TextView) {
+    override fun onKeyboardDone(v: TextView) {
         myApplication.hideKeyboard(v)
         updateWeatherCity()
     }
@@ -234,5 +292,31 @@ class WeatherViewModel(context: Context) : BaseViewModel(context.applicationCont
         super.onCleared()
         if (this::subscription.isInitialized)
             subscription.dispose()
+
+        onStopGpsLocalize()
+    }
+
+    /**
+     * Showing Alert Dialog with Settings option
+     * Navigates user to app settings
+     */
+    fun showSettingsDialog() {
+        val builder: AlertDialog.Builder = AlertDialog.Builder(myApplication)
+        builder.setTitle(R.string.permissionGpsTitle)
+        builder.setMessage(R.string.permissionGpsMessage)
+        builder.setPositiveButton(R.string.permissionGpsOk) { dialog, which ->
+            dialog.cancel()
+            openSettings()
+        }
+        builder.setNegativeButton(R.string.permissionGpsCancel) { dialog, which -> dialog.cancel() }
+        builder.show()
+    }
+
+    // navigating user to app settings
+    private fun openSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri: Uri = Uri.fromParts("package", myApplication.packageName, null)
+        intent.data = uri
+        myApplication.startActivity(intent)
     }
 }

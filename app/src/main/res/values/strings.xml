@@ -15,4 +15,6 @@
     <string name="permissionGpsMessage">We need GPS for auto-detection</string>
     <string name="permissionGpsOk">Go to settings</string>
     <string name="permissionGpsCancel">Cancel</string>
+    <string name="pleaseEnterTown">Please enter a town</string>
+    <string name="autolocalize">Autolocalize</string>
 </resources>
