@@ -108,7 +108,7 @@ class WeatherViewModel(context: Context) : BaseViewModel(context.applicationCont
                     }
 
                     if (report.isAnyPermissionPermanentlyDenied) {
-                        showSettingsDialog();
+                        showSettingsDialog(v);
                     }
                 }
 
@@ -300,23 +300,23 @@ class WeatherViewModel(context: Context) : BaseViewModel(context.applicationCont
      * Showing Alert Dialog with Settings option
      * Navigates user to app settings
      */
-    fun showSettingsDialog() {
-        val builder: AlertDialog.Builder = AlertDialog.Builder(myApplication)
+    fun showSettingsDialog(v : View) {
+        val builder: AlertDialog.Builder = AlertDialog.Builder(v.context as Activity)
         builder.setTitle(R.string.permissionGpsTitle)
         builder.setMessage(R.string.permissionGpsMessage)
         builder.setPositiveButton(R.string.permissionGpsOk) { dialog, which ->
             dialog.cancel()
-            openSettings()
+            openSettings(v)
         }
         builder.setNegativeButton(R.string.permissionGpsCancel) { dialog, which -> dialog.cancel() }
         builder.show()
     }
 
     // navigating user to app settings
-    private fun openSettings() {
+    private fun openSettings(v: View) {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
         val uri: Uri = Uri.fromParts("package", myApplication.packageName, null)
         intent.data = uri
-        myApplication.startActivity(intent)
+        (v.context as Activity).startActivity(intent)
     }
 }
