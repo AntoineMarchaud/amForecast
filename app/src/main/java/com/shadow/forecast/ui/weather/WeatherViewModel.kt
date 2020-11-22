@@ -41,7 +41,7 @@ import java.util.*
 import javax.inject.Inject
 
 
-class WeatherViewModel(context: Context) : BaseViewModel(context.applicationContext as Application),
+class WeatherViewModel(context: Context) : BaseViewModel(context),
     LocationListener, OnTextViewKeyboardListener {
 
     @Inject
@@ -50,7 +50,8 @@ class WeatherViewModel(context: Context) : BaseViewModel(context.applicationCont
     @Inject
     lateinit var myApplication: Application // Dagger2 !
 
-    private val keyMap: String = myApplication.resources.getString(R.string.key_map)
+    private var myContext =  context
+    private val keyMap: String = myContext.resources.getString(R.string.key_map)
 
     // for autogeoloc
     private var locationManager: LocationManager? = null
@@ -98,7 +99,7 @@ class WeatherViewModel(context: Context) : BaseViewModel(context.applicationCont
 
                     if (report.areAllPermissionsGranted()) {
                         locationManager =
-                            myApplication.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                            myContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
                         locationManager?.requestLocationUpdates(
                             LocationManager.GPS_PROVIDER,
                             1000,// in milliseconds
@@ -108,7 +109,7 @@ class WeatherViewModel(context: Context) : BaseViewModel(context.applicationCont
                     }
 
                     if (report.isAnyPermissionPermanentlyDenied) {
-                        showSettingsDialog(v);
+                        showSettingsDialog()
                     }
                 }
 
@@ -116,7 +117,7 @@ class WeatherViewModel(context: Context) : BaseViewModel(context.applicationCont
                     permissions: MutableList<com.karumi.dexter.listener.PermissionRequest>?,
                     token: PermissionToken?
                 ) {
-                    token?.continuePermissionRequest();
+                    token?.continuePermissionRequest()
                 }
             }).check()
     }
@@ -139,7 +140,7 @@ class WeatherViewModel(context: Context) : BaseViewModel(context.applicationCont
 
         onStopGpsLocalize() // no need anymore
 
-        val geocoder = Geocoder(myApplication, Locale.getDefault())
+        val geocoder = Geocoder(myContext, Locale.getDefault())
         val addresses: List<Address> = geocoder.getFromLocation(
             myPersonnalLat ?: 0.0,
             myPersonnalLong ?: 0.0,
@@ -164,17 +165,17 @@ class WeatherViewModel(context: Context) : BaseViewModel(context.applicationCont
     }
 
     override fun onKeyboardGo(v: TextView) {
-        myApplication.hideKeyboard(v)
+        myContext.hideKeyboard(v)
         updateWeatherCity()
     }
 
     override fun onKeyboardSearch(v: TextView) {
-        myApplication.hideKeyboard(v)
+        myContext.hideKeyboard(v)
         updateWeatherCity()
     }
 
     override fun onKeyboardDone(v: TextView) {
-        myApplication.hideKeyboard(v)
+        myContext.hideKeyboard(v)
         updateWeatherCity()
     }
 
@@ -300,23 +301,23 @@ class WeatherViewModel(context: Context) : BaseViewModel(context.applicationCont
      * Showing Alert Dialog with Settings option
      * Navigates user to app settings
      */
-    fun showSettingsDialog(v : View) {
-        val builder: AlertDialog.Builder = AlertDialog.Builder(v.context as Activity)
+    fun showSettingsDialog() {
+        val builder: AlertDialog.Builder = AlertDialog.Builder(myContext)
         builder.setTitle(R.string.permissionGpsTitle)
         builder.setMessage(R.string.permissionGpsMessage)
         builder.setPositiveButton(R.string.permissionGpsOk) { dialog, which ->
             dialog.cancel()
-            openSettings(v)
+            openSettings()
         }
         builder.setNegativeButton(R.string.permissionGpsCancel) { dialog, which -> dialog.cancel() }
         builder.show()
     }
 
     // navigating user to app settings
-    private fun openSettings(v: View) {
+    private fun openSettings() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-        val uri: Uri = Uri.fromParts("package", myApplication.packageName, null)
+        val uri: Uri = Uri.fromParts("package", myContext.packageName, null)
         intent.data = uri
-        (v.context as Activity).startActivity(intent)
+        myContext.startActivity(intent)
     }
 }

@@ -1,6 +1,7 @@
 package com.shadow.forecast.base
 
 import android.app.Application
+import android.content.Context
 import androidx.databinding.Observable
 import androidx.databinding.PropertyChangeRegistry
 import androidx.lifecycle.ViewModel
@@ -13,7 +14,7 @@ import com.shadow.forecast.ui.weather.WeatherViewModel
 /**
  * Every ViewModel must derived from this class
  */
-abstract class BaseViewModel(application: Application) : ViewModel(), Observable {
+abstract class BaseViewModel(context: Context) : ViewModel(), Observable {
 
     // *****************************************
     //        Manage NotifyPropertyChanged
@@ -57,7 +58,7 @@ abstract class BaseViewModel(application: Application) : ViewModel(), Observable
     // DaggerViewModelInjector is generated at compile
     private val component: ViewModelInjectorComponent = DaggerViewModelInjectorComponent
         .builder()
-        .appModule(AppModule(application))
+        .appModule(AppModule(context.applicationContext as Application))
         .networkModule(NetworkModule())
         .build()
 
