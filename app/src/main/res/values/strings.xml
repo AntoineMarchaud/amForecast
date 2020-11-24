@@ -17,4 +17,5 @@
     <string name="permissionGpsCancel">Cancel</string>
     <string name="pleaseEnterTown">Please enter a town</string>
     <string name="autolocalize">Autolocalize</string>
+    <string name="pleaseActivateGps">Please activate the GPS</string>
 </resources>

@@ -159,7 +159,9 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
     }
 
     override fun onProviderDisabled(provider: String?) {
-
+        // if no gps
+        if(provider == "gps")
+            errorMessage.value = myApplication.getString(R.string.pleaseActivateGps)
     }
 
     override fun onKeyboardGo(v: TextView) {
