@@ -3,7 +3,6 @@ package com.shadow.forecast.ui.weather
 import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
@@ -125,7 +124,7 @@ class WeatherActivity : AppCompatActivity() {
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        //townEntered.setText(savedInstanceState.getString(TOWN), TextView.BufferType.EDITABLE)
+        //townEntered.setText(savedInstanceState.getString(TOWN), TextView.BufferType.EDITABLE)b
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

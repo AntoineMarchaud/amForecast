@@ -1,14 +1,12 @@
 package com.shadow.forecast.injection.module
 
-import dagger.Module
-import dagger.Provides
-import dagger.Reusable
-import io.reactivex.schedulers.Schedulers
-import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.converter.moshi.MoshiConverterFactory
 import com.chenxyu.retrofit.adapter.FlowCallAdapterFactory
 import com.shadow.forecast.network.WeatherApi
+import dagger.Module
+import dagger.Provides
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
+import retrofit2.converter.moshi.MoshiConverterFactory
 
 @Module
 class NetworkModule {
@@ -34,7 +32,7 @@ class NetworkModule {
         return Retrofit.Builder()
             .baseUrl("http://api.openweathermap.org/data/2.5/")
             .addConverterFactory(MoshiConverterFactory.create()) // JSON management
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io())) // returns Observable
+            .addCallAdapterFactory(RxJava3CallAdapterFactory.create()) // returns Observable
             .addCallAdapterFactory(FlowCallAdapterFactory()) // returns Kotlin Flow
             .build()
     }

@@ -2,7 +2,8 @@ package com.shadow.forecast.network
 
 import com.shadow.forecast.model.openweathermap.current.Current
 import com.shadow.forecast.model.openweathermap.oneCall.OneCall
-import io.reactivex.Observable
+import io.reactivex.rxjava3.core.Observable
+import kotlinx.coroutines.flow.Flow
 import retrofit2.http.GET
 import retrofit2.http.Query
 

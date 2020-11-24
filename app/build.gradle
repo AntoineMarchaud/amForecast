@@ -66,14 +66,14 @@ dependencies {
 
     //Retrofit
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
-    implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit_version"
+    implementation "com.squareup.retrofit2:adapter-rxjava3:$retrofit_version"
     implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
     implementation "com.squareup.retrofit2:converter-moshi:$retrofit_version" // autre truc pour json
     implementation 'com.github.chenxyu:retrofit-adapter-flow:1.1.0' // non officiel, pour avoir des Flow en retour de retrofit
 
     //rxjava
-    implementation "io.reactivex.rxjava2:rxjava:$rx_java"
-    implementation "io.reactivex.rxjava2:rxandroid:$rx_android"
+    implementation "io.reactivex.rxjava3:rxjava:$rx_java"
+    implementation "io.reactivex.rxjava3:rxandroid:$rx_android"
 
     // picasso
     implementation 'com.squareup.picasso:picasso:2.71828'

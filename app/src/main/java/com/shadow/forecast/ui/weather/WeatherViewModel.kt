@@ -29,10 +29,10 @@ import com.shadow.forecast.model.openweathermap.current.Current
 import com.shadow.forecast.model.openweathermap.fusion.Fusion
 import com.shadow.forecast.model.openweathermap.oneCall.OneCall
 import com.shadow.forecast.network.WeatherApi
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.schedulers.Schedulers
 import org.osmdroid.util.GeoPoint
 import java.text.SimpleDateFormat
 import java.util.*
@@ -96,6 +96,10 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
                 override fun onPermissionsChecked(report: MultiplePermissionsReport) {
 
                     if (report.areAllPermissionsGranted()) {
+
+                        loadingVisibility = View.VISIBLE;
+                        notifyPropertyChanged(BR.loadingVisibility)
+
                         locationManager =
                             myContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
                         locationManager?.requestLocationUpdates(
@@ -133,6 +137,9 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
      */
     override fun onLocationChanged(location: Location?) {
 
+        loadingVisibility = View.GONE;
+        notifyPropertyChanged(BR.loadingVisibility)
+
         myPersonnalLat = location?.latitude
         myPersonnalLong = location?.longitude
 
@@ -160,6 +167,9 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
 
     override fun onProviderDisabled(provider: String?) {
         // if no gps
+        loadingVisibility = View.GONE;
+        notifyPropertyChanged(BR.loadingVisibility)
+
         if(provider == "gps")
             errorMessage.value = myApplication.getString(R.string.pleaseActivateGps)
     }
@@ -210,7 +220,7 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
                                 }
                             })
                 }
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe { onRetrieveForecastStart() }
                 .doOnTerminate { onRetrieveForecastFinish() }
