@@ -322,4 +322,8 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
         intent.data = uri
         myContext.startActivity(intent)
     }
+
+    fun reset() {
+        errorMessage.value = null
+    }
 }

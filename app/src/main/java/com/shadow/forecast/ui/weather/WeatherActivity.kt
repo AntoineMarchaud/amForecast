@@ -102,7 +102,9 @@ class WeatherActivity : AppCompatActivity() {
         })
         // error message
         viewModel.errorMessage.observe(this, { error ->
-            Toast.makeText(this@WeatherActivity, error, Toast.LENGTH_SHORT).show()
+            error?.let {
+                Toast.makeText(this@WeatherActivity, error, Toast.LENGTH_SHORT).show()
+            }
         })
     }
 
@@ -114,6 +116,12 @@ class WeatherActivity : AppCompatActivity() {
     public override fun onPause() {
         super.onPause()
         mapView.onPause()
+    }
+
+
+    public override fun onDestroy() {
+        super.onDestroy()
+        viewModel.reset()
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
