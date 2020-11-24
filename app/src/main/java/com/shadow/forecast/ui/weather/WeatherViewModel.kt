@@ -151,15 +151,15 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
     }
 
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
-        TODO("Not yet implemented")
+
     }
 
     override fun onProviderEnabled(provider: String?) {
-        TODO("Not yet implemented")
+
     }
 
     override fun onProviderDisabled(provider: String?) {
-        TODO("Not yet implemented")
+
     }
 
     override fun onKeyboardGo(v: TextView) {
