@@ -3,6 +3,7 @@ package com.shadow.forecast.ui.weather
 import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
@@ -32,9 +33,14 @@ class WeatherActivity : AppCompatActivity() {
     // One Marker stored
     private var marker: Marker? = null
 
+    companion object {
+        val TOWN : String = "town";
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_weather)
+
 
         // init viewModel
         viewModel =
@@ -108,5 +114,18 @@ class WeatherActivity : AppCompatActivity() {
     public override fun onPause() {
         super.onPause()
         mapView.onPause()
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        //townEntered.setText(savedInstanceState.getString(TOWN), TextView.BufferType.EDITABLE)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+
+        outState.run {
+            //putString(TOWN, townEntered.text.toString())
+        }
+        // call superclass to save any view hierarchy
+        super.onSaveInstanceState(outState)
     }
 }
