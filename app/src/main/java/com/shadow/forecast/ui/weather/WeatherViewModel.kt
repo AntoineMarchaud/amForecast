@@ -144,7 +144,7 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
             myPersonnalLong ?: 0.0,
             1
         )
-        town = addresses[0].featureName
+        town = addresses[0].locality
         notifyPropertyChanged(BR.town)
 
         updateWeatherCity()
