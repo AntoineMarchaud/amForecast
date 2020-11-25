@@ -23,7 +23,7 @@ android {
     buildToolsVersion "29.0.3"
 
     defaultConfig {
-        applicationId "com.shadow.forecast"
+        applicationId "com.amarchaud.forecast"
         // I choose 23 (>= Android 6.0) because data are stored automatically on Google, otherwise, need to do specific work,
         // if you want Android < 5.0, please add MultidexEnabled to true
         minSdkVersion 23
@@ -91,7 +91,6 @@ dependencies {
 
     // dexter (permission)
     implementation 'com.karumi:dexter:5.0.0'
-    implementation "androidx.core:core-ktx:1.3.2"
 
     // recyclerview
     implementation 'androidx.recyclerview:recyclerview:1.1.0'

@@ -3,7 +3,7 @@
     <data>
         <variable
             name="ItemWeatherData"
-            type="com.shadow.forecast.model.openweathermap.WeatherDisplayed" />
+            type="com.amarchaud.forecast.model.openweathermap.WeatherDisplayed" />
     </data>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

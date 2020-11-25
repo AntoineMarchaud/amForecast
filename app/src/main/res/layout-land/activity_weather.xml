@@ -9,7 +9,7 @@
 
         <variable
             name="WeatherViewModel"
-            type="com.shadow.forecast.ui.weather.WeatherViewModel" />
+            type="com.amarchaud.forecast.ui.weather.WeatherViewModel" />
 
     </data>
 
