@@ -163,6 +163,7 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
 
     override fun onProviderEnabled(provider: String?) {
 
+
     }
 
     override fun onProviderDisabled(provider: String?) {
