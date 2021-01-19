@@ -1,4 +1,4 @@
-# amForecast (made by Antoine Marchaud)
+# amForecast
 A simple app for giving current and future weather
 
 - Kotlin
