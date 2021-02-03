@@ -4,19 +4,14 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.amarchaud.forecast.BuildConfig
 import com.amarchaud.forecast.R
 import com.amarchaud.forecast.adapter.NextDaysRecyclerViewAdapter
 import com.amarchaud.forecast.databinding.ActivityWeatherBinding
-import com.amarchaud.forecast.injection.ViewModelFactory
 import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.activity_weather.*
-import kotlinx.android.synthetic.main.item_weather.view.*
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.views.CustomZoomButtonsController
@@ -24,7 +19,7 @@ import org.osmdroid.views.overlay.Marker
 
 class WeatherActivity : AppCompatActivity() {
 
-    private lateinit var viewModel: WeatherViewModel
+    private val viewModel: WeatherViewModel by viewModels()
     private lateinit var binding: ActivityWeatherBinding
 
     // recycler view
@@ -34,57 +29,55 @@ class WeatherActivity : AppCompatActivity() {
     private var marker: Marker? = null
 
     companion object {
-        val TOWN : String = "town";
+        val TOWN: String = "town";
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_weather)
 
+        binding = ActivityWeatherBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
 
-        // init viewModel
-        viewModel =
-            ViewModelProvider(this).get(WeatherViewModel::class.java)
-
-        // Obtain binding for MVVM
-        binding =
-            DataBindingUtil.setContentView<ActivityWeatherBinding>(this, R.layout.activity_weather)
         binding.weatherViewModel = viewModel
-        binding.lifecycleOwner = this
 
-        // force the recycler view to be in line mode
-        nextDayRecyclerView.layoutManager =
-            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        with(binding) {
+            // force the recycler view to be in line mode
+            nextDayRecyclerView.layoutManager =
+                LinearLayoutManager(this@WeatherActivity, LinearLayoutManager.HORIZONTAL, false)
 
-        // other
-        townEntered.setImeActionLabel("Weather !", KeyEvent.KEYCODE_ENTER)
+            // other
+            townEntered.setImeActionLabel("Weather !", KeyEvent.KEYCODE_ENTER)
 
-        // map default config
-        Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID // VERY IMPORTANT !
-        mapView.setTileSource(TileSourceFactory.MAPNIK)
-        mapView.zoomController.setVisibility(CustomZoomButtonsController.Visibility.ALWAYS)
-        mapView.setMultiTouchControls(true)
-        val mapController = mapView.controller
-        mapController.setZoom(10.0)
-        marker = Marker(mapView)
+            // map default config
+            Configuration.getInstance().userAgentValue =
+                BuildConfig.APPLICATION_ID // VERY IMPORTANT !
+            mapView.setTileSource(TileSourceFactory.MAPNIK)
+            mapView.zoomController.setVisibility(CustomZoomButtonsController.Visibility.ALWAYS)
+            mapView.setMultiTouchControls(true)
+            val mapController = mapView.controller
+            mapController.setZoom(10.0)
+            marker = Marker(mapView)
 
-        viewModel.currentInfo.observe(this, { currentInfo ->
+            viewModel.currentInfo.observe(this@WeatherActivity, { currentInfo ->
 
-            currentWeatherItem.textViewDate.text = currentInfo.date
-            currentWeatherItem.textViewTemperature.text = currentInfo.temperature
-            currentWeatherItem.textViewWindSpeed.text = currentInfo.windSpeed
-            currentWeatherItem.textViewDetailedForecast.text = currentInfo.details
+                currentWeatherItem.textViewDate.text = currentInfo.date
+                currentWeatherItem.textViewTemperature.text = currentInfo.temperature
+                currentWeatherItem.textViewWindSpeed.text = currentInfo.windSpeed
+                currentWeatherItem.textViewDetailedForecast.text = currentInfo.details
 
-            try {
-                Picasso.get()
-                    .load(Uri.parse("http://openweathermap.org/img/wn/${currentInfo.logo}.png"))
-                    .into(
-                        currentWeatherItem.imageViewWeather
-                    )
-            } catch (e: IllegalArgumentException) {
-                currentWeatherItem.imageViewWeather.setImageResource(R.drawable.app_logo)
-            }
-        })
+                try {
+                    Picasso.get()
+                        .load(Uri.parse("http://openweathermap.org/img/wn/${currentInfo.logo}.png"))
+                        .into(
+                            currentWeatherItem.imageViewWeather
+                        )
+                } catch (e: IllegalArgumentException) {
+                    currentWeatherItem.imageViewWeather.setImageResource(R.drawable.app_logo)
+                }
+            })
+        }
+
         viewModel.nextInfo.observe(this, { nextInfo ->
             // populate recycler view
             nextDaysRecyclerViewAdapter = NextDaysRecyclerViewAdapter(nextInfo)
@@ -93,12 +86,14 @@ class WeatherActivity : AppCompatActivity() {
         })
         // update current / choosen position on mapview
         viewModel.myPosition.observe(this, { p ->
-            mapView.controller.setCenter(p)
-            mapView.controller.animateTo(p)
-            mapView.overlays.remove(marker)
-            marker?.position = p
-            marker?.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-            mapView.overlays.add(marker)
+            with(binding) {
+                mapView.controller.setCenter(p)
+                mapView.controller.animateTo(p)
+                mapView.overlays.remove(marker)
+                marker?.position = p
+                marker?.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                mapView.overlays.add(marker)
+            }
         })
         // error message
         viewModel.errorMessage.observe(this, { error ->
@@ -110,12 +105,12 @@ class WeatherActivity : AppCompatActivity() {
 
     public override fun onResume() {
         super.onResume()
-        mapView.onResume()
+        binding.mapView.onResume()
     }
 
     public override fun onPause() {
         super.onPause()
-        mapView.onPause()
+        binding.mapView.onPause()
     }
 
 

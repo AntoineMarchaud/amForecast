@@ -1,7 +1,6 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
-    id 'kotlin-android-extensions' // for example, avoid findviewbyid !!
     id 'kotlin-kapt'
 }
 
@@ -14,20 +13,19 @@ allprojects {
 
 android {
 
-    // For MVVM databinding
-    dataBinding {
-        enabled = true
+    buildFeatures {
+        dataBinding true
+        viewBinding true
     }
 
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
+    compileSdkVersion 30
 
     defaultConfig {
         applicationId "com.amarchaud.forecast"
         // I choose 23 (>= Android 6.0) because data are stored automatically on Google, otherwise, need to do specific work,
         // if you want Android < 5.0, please add MultidexEnabled to true
         minSdkVersion 23
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
 
@@ -63,6 +61,13 @@ dependencies {
     testImplementation 'junit:junit:4.13.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    implementation "androidx.activity:activity-ktx:1.1.0"
+
+    // LiveData
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.2.0'
+    // ViewModel
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0'
 
     //Retrofit
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"

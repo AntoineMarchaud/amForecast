@@ -82,7 +82,7 @@ class WeatherViewModel(private val app: Application) : BaseViewModel(app),
      */
     fun onAutoLocalize(v: View) {
         Dexter
-                .withActivity(v.context as Activity)
+                .withContext(app)
                 .withPermissions(
                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
                         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -132,13 +132,13 @@ class WeatherViewModel(private val app: Application) : BaseViewModel(app),
     /**
      * Once my position is found, call getWeatherResultByPositionWithRxJava
      */
-    override fun onLocationChanged(location: Location?) {
+    override fun onLocationChanged(location: Location) {
 
-        loadingVisibility = View.GONE;
+        loadingVisibility = View.GONE
         notifyPropertyChanged(BR.loadingVisibility)
 
-        myPersonnalLat = location?.latitude
-        myPersonnalLong = location?.longitude
+        myPersonnalLat = location.latitude
+        myPersonnalLong = location.longitude
 
         onStopGpsLocalize() // no need anymore
 
@@ -154,15 +154,12 @@ class WeatherViewModel(private val app: Application) : BaseViewModel(app),
         updateWeatherCity()
     }
 
+
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
 
     }
 
-    override fun onProviderEnabled(provider: String?) {
-
-
-    }
-
+/*
     override fun onProviderDisabled(provider: String?) {
         // if no gps
         loadingVisibility = View.GONE;
@@ -170,7 +167,7 @@ class WeatherViewModel(private val app: Application) : BaseViewModel(app),
 
         if (provider == "gps")
             errorMessage.value = app.getString(R.string.pleaseActivateGps)
-    }
+    }*/
 
     override fun onKeyboardGo(v: TextView) {
         app.hideKeyboard(v)
