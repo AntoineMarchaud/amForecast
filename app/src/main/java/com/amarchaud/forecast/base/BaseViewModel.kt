@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.databinding.Observable
 import androidx.databinding.PropertyChangeRegistry
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import com.amarchaud.forecast.injection.component.DaggerViewModelInjectorComponent
 import com.amarchaud.forecast.injection.component.ViewModelInjectorComponent
@@ -14,7 +15,7 @@ import com.amarchaud.forecast.ui.weather.WeatherViewModel
 /**
  * Every ViewModel must derived from this class
  */
-abstract class BaseViewModel(context: Context) : ViewModel(), Observable {
+abstract class BaseViewModel(app: Application) : AndroidViewModel(app), Observable {
 
     // *****************************************
     //        Manage NotifyPropertyChanged
@@ -58,7 +59,7 @@ abstract class BaseViewModel(context: Context) : ViewModel(), Observable {
     // DaggerViewModelInjector is generated at compile
     private val component: ViewModelInjectorComponent = DaggerViewModelInjectorComponent
         .builder()
-        .appModule(AppModule(context.applicationContext as Application))
+        .appModule(AppModule(app))
         .networkModule(NetworkModule())
         .build()
 

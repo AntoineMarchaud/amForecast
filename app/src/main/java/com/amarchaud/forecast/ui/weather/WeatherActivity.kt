@@ -6,6 +6,7 @@ import android.view.KeyEvent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.amarchaud.forecast.BuildConfig
@@ -43,7 +44,7 @@ class WeatherActivity : AppCompatActivity() {
 
         // init viewModel
         viewModel =
-            ViewModelProviders.of(this, ViewModelFactory(this)).get(WeatherViewModel::class.java)
+            ViewModelProvider(this).get(WeatherViewModel::class.java)
 
         // Obtain binding for MVVM
         binding =

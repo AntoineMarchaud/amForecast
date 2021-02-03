@@ -1,6 +1,5 @@
 package com.amarchaud.forecast.injection.module
 
-import com.chenxyu.retrofit.adapter.FlowCallAdapterFactory
 import com.amarchaud.forecast.network.WeatherApi
 import dagger.Module
 import dagger.Provides
@@ -33,7 +32,6 @@ class NetworkModule {
             .baseUrl("http://api.openweathermap.org/data/2.5/")
             .addConverterFactory(MoshiConverterFactory.create()) // JSON management
             .addCallAdapterFactory(RxJava3CallAdapterFactory.create()) // returns Observable
-            .addCallAdapterFactory(FlowCallAdapterFactory()) // returns Kotlin Flow
             .build()
     }
 }

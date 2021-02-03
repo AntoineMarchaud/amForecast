@@ -39,17 +39,14 @@ import java.util.*
 import javax.inject.Inject
 
 
-class WeatherViewModel(context: Context) : BaseViewModel(context),
-    LocationListener, OnTextViewKeyboardListener {
+class WeatherViewModel(private val app: Application) : BaseViewModel(app),
+        LocationListener, OnTextViewKeyboardListener {
 
     @Inject
     lateinit var myWeatherApi: WeatherApi // Dagger2 !
 
-    @Inject
-    lateinit var myApplication: Application // Dagger2 !
 
-    private var myContext =  context
-    private val keyMap: String = myContext.resources.getString(R.string.key_map)
+    private val keyMap: String = app.resources.getString(R.string.key_map)
 
     // for autogeoloc
     private var locationManager: LocationManager? = null
@@ -85,43 +82,43 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
      */
     fun onAutoLocalize(v: View) {
         Dexter
-            .withActivity(v.context as Activity)
-            .withPermissions(
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-            .withListener(object : MultiplePermissionsListener {
-                @SuppressLint("MissingPermission")
-                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
+                .withActivity(v.context as Activity)
+                .withPermissions(
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+                .withListener(object : MultiplePermissionsListener {
+                    @SuppressLint("MissingPermission")
+                    override fun onPermissionsChecked(report: MultiplePermissionsReport) {
 
-                    if (report.areAllPermissionsGranted()) {
+                        if (report.areAllPermissionsGranted()) {
 
-                        loadingVisibility = View.VISIBLE;
-                        notifyPropertyChanged(BR.loadingVisibility)
+                            loadingVisibility = View.VISIBLE;
+                            notifyPropertyChanged(BR.loadingVisibility)
 
-                        locationManager =
-                            myContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                        locationManager?.requestLocationUpdates(
-                            LocationManager.GPS_PROVIDER,
-                            1000,// in milliseconds
-                            10f, // in meters
-                            this@WeatherViewModel
-                        )
+                            locationManager =
+                                    app.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                            locationManager?.requestLocationUpdates(
+                                    LocationManager.GPS_PROVIDER,
+                                    1000,// in milliseconds
+                                    10f, // in meters
+                                    this@WeatherViewModel
+                            )
+                        }
+
+                        if (report.isAnyPermissionPermanentlyDenied) {
+                            showSettingsDialog()
+                        }
                     }
 
-                    if (report.isAnyPermissionPermanentlyDenied) {
-                        showSettingsDialog()
+                    override fun onPermissionRationaleShouldBeShown(
+                            permissions: MutableList<com.karumi.dexter.listener.PermissionRequest>?,
+                            token: PermissionToken?
+                    ) {
+                        token?.continuePermissionRequest()
                     }
-                }
-
-                override fun onPermissionRationaleShouldBeShown(
-                    permissions: MutableList<com.karumi.dexter.listener.PermissionRequest>?,
-                    token: PermissionToken?
-                ) {
-                    token?.continuePermissionRequest()
-                }
-            }).check()
+                }).check()
     }
 
     /**
@@ -145,11 +142,11 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
 
         onStopGpsLocalize() // no need anymore
 
-        val geocoder = Geocoder(myContext, Locale.getDefault())
+        val geocoder = Geocoder(app, Locale.getDefault())
         val addresses: List<Address> = geocoder.getFromLocation(
-            myPersonnalLat ?: 0.0,
-            myPersonnalLong ?: 0.0,
-            1
+                myPersonnalLat ?: 0.0,
+                myPersonnalLong ?: 0.0,
+                1
         )
         town = addresses[0].locality
         notifyPropertyChanged(BR.town)
@@ -171,22 +168,22 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
         loadingVisibility = View.GONE;
         notifyPropertyChanged(BR.loadingVisibility)
 
-        if(provider == "gps")
-            errorMessage.value = myApplication.getString(R.string.pleaseActivateGps)
+        if (provider == "gps")
+            errorMessage.value = app.getString(R.string.pleaseActivateGps)
     }
 
     override fun onKeyboardGo(v: TextView) {
-        myContext.hideKeyboard(v)
+        app.hideKeyboard(v)
         updateWeatherCity()
     }
 
     override fun onKeyboardSearch(v: TextView) {
-        myContext.hideKeyboard(v)
+        app.hideKeyboard(v)
         updateWeatherCity()
     }
 
     override fun onKeyboardDone(v: TextView) {
-        myContext.hideKeyboard(v)
+        app.hideKeyboard(v)
         updateWeatherCity()
     }
 
@@ -195,40 +192,40 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
         town.let {
 
             subscription = myWeatherApi.getWeatherResultByTownWithRxJava(town, keyMap)
-                .concatMap { result: Current ->
+                    .concatMap { result: Current ->
 
-                    // zip results current / OneCall to one struct
+                        // zip results current / OneCall to one struct
 
-                    if (result.coord?.lat ?: 0 != 0 && result.coord?.lon ?: 0 != 0)
-                        Observable.zip(
-                            Observable.just(result),
-                            myWeatherApi.getOneCallWeatherResultByLatLongWithRxJava(
-                                result.coord!!.lat,
-                                result.coord!!.lon,
-                                "minutely,hourly,alerts",
-                                keyMap
-                            ),
-                            object : Function2<Current, OneCall, Fusion> {
-                                override fun invoke(p1: Current, p2: OneCall): Fusion {
-                                    return Fusion(p1, p2)
-                                }
-                            })
-                    else
-                        Observable.zip(Observable.just(result), null,
-                            object : Function2<Current, OneCall, Fusion> {
-                                override fun invoke(p1: Current, p2: OneCall): Fusion {
-                                    return Fusion(p1, p2)
-                                }
-                            })
-                }
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe { onRetrieveForecastStart() }
-                .doOnTerminate { onRetrieveForecastFinish() }
-                .subscribe(
-                    { fusion: Fusion -> onWeatherSuccess(fusion) },
-                    { onError -> onWeatherError(onError) }
-                )
+                        if (result.coord?.lat ?: 0 != 0 && result.coord?.lon ?: 0 != 0)
+                            Observable.zip(
+                                    Observable.just(result),
+                                    myWeatherApi.getOneCallWeatherResultByLatLongWithRxJava(
+                                            result.coord!!.lat,
+                                            result.coord!!.lon,
+                                            "minutely,hourly,alerts",
+                                            keyMap
+                                    ),
+                                    object : Function2<Current, OneCall, Fusion> {
+                                        override fun invoke(p1: Current, p2: OneCall): Fusion {
+                                            return Fusion(p1, p2)
+                                        }
+                                    })
+                        else
+                            Observable.zip(Observable.just(result), null,
+                                    object : Function2<Current, OneCall, Fusion> {
+                                        override fun invoke(p1: Current, p2: OneCall): Fusion {
+                                            return Fusion(p1, p2)
+                                        }
+                                    })
+                    }
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .doOnSubscribe { onRetrieveForecastStart() }
+                    .doOnTerminate { onRetrieveForecastFinish() }
+                    .subscribe(
+                            { fusion: Fusion -> onWeatherSuccess(fusion) },
+                            { onError -> onWeatherError(onError) }
+                    )
         }
     }
 
@@ -256,7 +253,7 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
 
         // update map position
         myPosition.value =
-            GeoPoint(result.Current?.coord?.lat ?: 0.0, result.Current?.coord?.lon ?: 0.0)
+                GeoPoint(result.Current?.coord?.lat ?: 0.0, result.Current?.coord?.lon ?: 0.0)
     }
 
     private fun updateWeatherInfo() {
@@ -268,13 +265,13 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
         current?.let {
 
             currentInfo.value = WeatherDisplayed(
-                it.weather?.get(0)?.icon,
-                dateFormat.format(it.dt.times(1000L)),
-                "${it.main?.temp?.toInt() ?: 0} °C",
-                "${it.wind?.speed?.times(3.6f)?.toInt() ?: 0} km/h",
-                "${it.weather?.get(0)?.main} /  ${
-                    it.weather?.get(0)?.description
-                }"
+                    it.weather?.get(0)?.icon,
+                    dateFormat.format(it.dt.times(1000L)),
+                    "${it.main?.temp?.toInt() ?: 0} °C",
+                    "${it.wind?.speed?.times(3.6f)?.toInt() ?: 0} km/h",
+                    "${it.weather?.get(0)?.main} /  ${
+                        it.weather?.get(0)?.description
+                    }"
             )
         }
 
@@ -284,13 +281,13 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
         savedFusion?.OneCall?.daily?.forEach {
             // create list
             val oneDay = WeatherDisplayed(
-                it.weather?.get(0)?.icon,
-                dateFormat.format(it.dt.times(1000L)),
-                "${it.temp?.day?.toInt() ?: 0} °C",
-                "${it.wind_speed.times(3.6f).toInt()} km/h",
-                "${it.weather?.get(0)?.main} /  ${
-                    it.weather?.get(0)?.description
-                }"
+                    it.weather?.get(0)?.icon,
+                    dateFormat.format(it.dt.times(1000L)),
+                    "${it.temp?.day?.toInt() ?: 0} °C",
+                    "${it.wind_speed.times(3.6f).toInt()} km/h",
+                    "${it.weather?.get(0)?.main} /  ${
+                        it.weather?.get(0)?.description
+                    }"
             )
             m.add(oneDay)
         }
@@ -315,7 +312,7 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
      * Navigates user to app settings
      */
     fun showSettingsDialog() {
-        val builder: AlertDialog.Builder = AlertDialog.Builder(myContext)
+        val builder: AlertDialog.Builder = AlertDialog.Builder(app)
         builder.setTitle(R.string.permissionGpsTitle)
         builder.setMessage(R.string.permissionGpsMessage)
         builder.setPositiveButton(R.string.permissionGpsOk) { dialog, which ->
@@ -329,9 +326,9 @@ class WeatherViewModel(context: Context) : BaseViewModel(context),
     // navigating user to app settings
     private fun openSettings() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-        val uri: Uri = Uri.fromParts("package", myContext.packageName, null)
+        val uri: Uri = Uri.fromParts("package", app.packageName, null)
         intent.data = uri
-        myContext.startActivity(intent)
+        app.startActivity(intent)
     }
 
     fun reset() {
