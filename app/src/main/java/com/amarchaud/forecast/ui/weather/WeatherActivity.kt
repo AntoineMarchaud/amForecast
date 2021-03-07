@@ -39,6 +39,7 @@ class WeatherActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
+        binding.lifecycleOwner = this
         binding.weatherViewModel = viewModel
 
         with(binding) {
