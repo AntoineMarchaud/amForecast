@@ -131,7 +131,7 @@ class WeatherViewModel(private val app: Application) : AndroidViewModel(app),
                     myPersonnalLong ?: 0.0,
                     1
                 )
-                town.postValue(addresses[0].locality)
+                town.value = addresses[0].locality
 
                 updateWeatherCity()
             }
