@@ -110,7 +110,7 @@ class WeatherViewModel(private val app: Application) : AndroidViewModel(app),
     private val locationProviderClient: FusedLocationProviderClient by lazy {
         LocationServices.getFusedLocationProviderClient(app)
     }
-    private val locationCallback : LocationCallback = object : LocationCallback() {
+    private val locationCallback: LocationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             for (location in locationResult.locations) {
                 currentLocation = location
@@ -217,44 +217,42 @@ class WeatherViewModel(private val app: Application) : AndroidViewModel(app),
 
 
     private fun updateWeatherCity() {
-        town.let {
 
-            subscription = myWeatherApi.getWeatherResultByTownWithRxJava(town.value, keyMap)
-                .concatMap { result: Current ->
+        subscription = myWeatherApi.getWeatherResultByTownWithRxJava(town.value, keyMap)
+            .concatMap { result: Current ->
 
-                    // zip results current / OneCall to one struct
+                // zip results current / OneCall to one struct
 
-                    if (result.coord?.lat ?: 0 != 0 && result.coord?.lon ?: 0 != 0)
-                        Observable.zip(
-                            Observable.just(result),
-                            myWeatherApi.getOneCallWeatherResultByLatLongWithRxJava(
-                                result.coord!!.lat,
-                                result.coord!!.lon,
-                                "minutely,hourly,alerts",
-                                keyMap
-                            ),
-                            object : Function2<Current, OneCall, Fusion> {
-                                override fun invoke(p1: Current, p2: OneCall): Fusion {
-                                    return Fusion(p1, p2)
-                                }
-                            })
-                    else
-                        Observable.zip(Observable.just(result), null,
-                            object : Function2<Current, OneCall, Fusion> {
-                                override fun invoke(p1: Current, p2: OneCall): Fusion {
-                                    return Fusion(p1, p2)
-                                }
-                            })
-                }
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe { onRetrieveForecastStart() }
-                .doOnTerminate { onRetrieveForecastFinish() }
-                .subscribe(
-                    { fusion: Fusion -> onWeatherSuccess(fusion) },
-                    { onError -> onWeatherError(onError) }
-                )
-        }
+                if (result.coord?.lat ?: 0 != 0 && result.coord?.lon ?: 0 != 0)
+                    Observable.zip(
+                        Observable.just(result),
+                        myWeatherApi.getOneCallWeatherResultByLatLongWithRxJava(
+                            result.coord!!.lat,
+                            result.coord!!.lon,
+                            "minutely,hourly,alerts",
+                            keyMap
+                        ),
+                        object : Function2<Current, OneCall, Fusion> {
+                            override fun invoke(p1: Current, p2: OneCall): Fusion {
+                                return Fusion(p1, p2)
+                            }
+                        })
+                else
+                    Observable.zip(Observable.just(result), null,
+                        object : Function2<Current, OneCall, Fusion> {
+                            override fun invoke(p1: Current, p2: OneCall): Fusion {
+                                return Fusion(p1, p2)
+                            }
+                        })
+            }
+            .subscribeOn(Schedulers.newThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnSubscribe { onRetrieveForecastStart() }
+            .doOnTerminate { onRetrieveForecastFinish() }
+            .subscribe(
+                { fusion: Fusion -> onWeatherSuccess(fusion) },
+                { onError -> onWeatherError(onError) }
+            )
     }
 
 
